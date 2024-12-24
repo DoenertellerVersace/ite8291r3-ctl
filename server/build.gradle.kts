@@ -55,7 +55,7 @@ dependencies {
 
 // Configurable directories
 val jniHeaderDir = layout.buildDirectory.dir("generated/sources/headers/java/main")
-val cSourceDir = layout.projectDirectory.dir("c")
+val cSourceDir = layout.projectDirectory.dir("native")
 val outputLibDir = layout.buildDirectory.dir("libs")
 val javaFilesDir = layout.projectDirectory.dir("src/main/java/")
 
@@ -84,14 +84,24 @@ tasks.register<Exec>("generateHeaders") {
         javac, "-h", jniHeaderDir.get().asFile,
         javaFilesDir.file("SwayIPC.java").asFile,
     )
-//    commandLine(
-//        "rm", javaFilesDir.file("SwayIPC.class").asFile
-//    )
+}
+
+// Task to generate JNI headers
+tasks.register<Exec>("removeClass") {
+    dependsOn("generateHeaders")
+    group = "build"
+    description = "rm SwayIPC.class"
+
+    workingDir = layout.projectDirectory.asFile
+    setIgnoreExitValue(true)
+    commandLine(
+        "rm", javaFilesDir.file("SwayIPC.class").asFile
+    )
 }
 
 // Task to compile the native C code into a shared library
 tasks.register<Exec>("compileNativeLib") {
-    dependsOn("generateHeaders")
+    dependsOn("removeClass")
     group = "build"
     description = "Compiles the native C code into a shared library"
 
@@ -117,6 +127,11 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.build {
+    dependsOn("test")
+    sourceSets.getByName("main").java.srcDir("src/main/java")
+    sourceSets.getByName("main").kotlin.srcDir("src/main/kotlin")
+}
 
 //val hostOs = System.getProperty("os.name")
 //val arch = System.getProperty("os.arch")

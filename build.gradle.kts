@@ -6,9 +6,3 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "2.1.0" apply false
     id("org.jetbrains.kotlin.multiplatform") version "2.1.0" apply false
 }
-
-//tasks {
-//    register("build") {
-//        dependsOn(":shared:build")
-//    }
-//}

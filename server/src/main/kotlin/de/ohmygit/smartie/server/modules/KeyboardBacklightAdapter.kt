@@ -77,6 +77,7 @@ private fun RoutingContext.setBrightnessState() {
     State.brightness = brightness.toInt()
 }
 
+
 private fun RoutingContext.setRgbState() {
     val r = call.pathParameters["r"]!!
     val g = call.pathParameters["g"]!!
