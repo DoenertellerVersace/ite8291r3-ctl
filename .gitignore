@@ -114,7 +114,6 @@ celerybeat.pid
 .env
 .venv
 env/
-venv/
 ENV/
 env.bak/
 venv.bak/
@@ -136,3 +135,18 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+*.iml
+.kotlin
+xcuserdata
+local.properties
+.idea
+.DS_Store
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings

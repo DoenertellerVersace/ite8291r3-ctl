@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 import ite8291r3_ctl
 
-with open("README.md") as f:
+with open("../../README.md") as f:
 	long_description = f.read()
 
 
