@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 val ktorVersion = "3.0.2"
 
 plugins {
@@ -13,7 +15,7 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
 }
 
-//sourceSets {
+sourceSets {
 //    val nativeMain by getting {
 //        dependencies {
 //            implementation("io.ktor:ktor-server-core:$ktor_version")
@@ -26,7 +28,15 @@ application {
 //            implementation("io.ktor:ktor-server-test-host:$ktor_version")
 //        }
 //    }
-//}
+    main {
+        java.srcDir("src/main/java")
+        kotlin.srcDir("src/main/kotlin")
+    }
+    test {
+        java.srcDir("src/test/java")
+        kotlin.srcDir("src/test/kotlin")
+    }
+}
 
 dependencies {
     implementation(projects.shared)
@@ -37,7 +47,76 @@ dependencies {
 //    testImplementation("io.ktor:ktor-server-tests-jvm:3.0.2")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
     testImplementation("io.ktor:ktor-server-test-host-jvm:3.0.2")
+    implementation("com.google.code.gson:gson:2.8.9")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+    testImplementation("org.hamcrest:hamcrest:2.2")
 }
+
+// Configurable directories
+val jniHeaderDir = layout.buildDirectory.dir("generated/sources/headers/java/main")
+val cSourceDir = layout.projectDirectory.dir("c")
+val outputLibDir = layout.buildDirectory.dir("libs")
+val javaFilesDir = layout.projectDirectory.dir("src/main/java/")
+
+// Detect JAVA_HOME, fallback to system properties if not set
+val javaHome: String = System.getenv("JAVA_HOME") ?: System.getProperty("java.home") ?: error("JAVA_HOME is not set")
+val javac: String = "$javaHome/bin/javac"
+
+val libName = if (Os.isFamily(Os.FAMILY_WINDOWS)) "swayipc.dll" else "libswayipc.so"
+
+// Ensure directories exist
+tasks.register("createDirs") {
+    doFirst {
+        jniHeaderDir.get().asFile.mkdirs()
+        outputLibDir.get().asFile.mkdirs()
+    }
+}
+
+// Task to generate JNI headers
+tasks.register<Exec>("generateHeaders") {
+    dependsOn("createDirs")
+    group = "build"
+    description = "Generates JNI headers for SwayIPC.java"
+
+    workingDir = layout.projectDirectory.asFile
+    commandLine(
+        javac, "-h", jniHeaderDir.get().asFile,
+        javaFilesDir.file("SwayIPC.java").asFile,
+    )
+//    commandLine(
+//        "rm", javaFilesDir.file("SwayIPC.class").asFile
+//    )
+}
+
+// Task to compile the native C code into a shared library
+tasks.register<Exec>("compileNativeLib") {
+    dependsOn("generateHeaders")
+    group = "build"
+    description = "Compiles the native C code into a shared library"
+
+    workingDir = projectDir
+
+    val includeDir = "$javaHome/include"
+    val includeOsDir = if (Os.isFamily(Os.FAMILY_WINDOWS)) "$includeDir/win32" else "$includeDir/linux"
+
+    commandLine(
+        "/usr/bin/gcc", "-shared", "-fPIC",
+        "-o", outputLibDir.get().file(libName).asFile,
+        "-I", includeDir,
+        "-I", includeOsDir,
+        "-I", jniHeaderDir.get().asFile,
+        cSourceDir.file("sway_ipc.c")
+    )
+}
+
+tasks.test {
+    dependsOn("compileNativeLib")
+    sourceSets.getByName("test").java.srcDir("src/test/java")
+    sourceSets.getByName("test").kotlin.srcDir("src/test/kotlin")
+    useJUnitPlatform()
+}
+
 
 //val hostOs = System.getProperty("os.name")
 //val arch = System.getProperty("os.arch")
