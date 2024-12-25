@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-from kbd_backlight_ctl import ite8291r3_ctl
+import ite8291r3_ctl
 
-with open("../../../README.md") as f:
+with open("../../README.md") as f:
 	long_description = f.read()
 
 

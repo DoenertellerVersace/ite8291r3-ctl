@@ -2,7 +2,7 @@ import argparse
 import sys
 import math
 
-from kbd_backlight_ctl.ite8291r3_ctl import ite8291r3
+from ite8291r3_ctl import ite8291r3
 
 color_name_to_rgb = {
 	"black":   (0, 0, 0),
