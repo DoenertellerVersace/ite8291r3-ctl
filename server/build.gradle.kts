@@ -6,10 +6,10 @@ plugins {
     application
 }
 
-group = "de.ohmygit.smartie.ui.drvctl.ite8291"
+group = "de.ohmygit.smartie.server"
 version = "1.0.0"
 application {
-    mainClass.set("de.ohmygit.smartie.ui.drvctl.ite8291.ApplicationKt")
+    mainClass.set("de.ohmygit.smartie.server.ApplicationKt")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=${extra["io.ktor.development"] ?: "false"}")
 }
 

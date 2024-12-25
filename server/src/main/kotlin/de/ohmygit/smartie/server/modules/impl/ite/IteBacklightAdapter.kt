@@ -1,16 +1,15 @@
 package de.ohmygit.smartie.server.modules.impl.ite
 
-import de.ohmygit.smartie.server.modules.Python
-import de.ohmygit.smartie.server.modules.backlight.keyboard.RgbLightStateAdapter
+import de.ohmygit.smartie.server.modules.PythonModule
+import de.ohmygit.smartie.server.modules.backlight.RgbLightStateAdapter
 
 private const val DEFAULT_STATE = true
-private const val DEFAULT_BRIGHTNESS = 10
+private const val DEFAULT_BRIGHTNESS = 20
 private const val DEFAULT_RED = 20
 private const val DEFAULT_GREEN = 0
 private const val DEFAULT_BLUE = 80
 
-class IteBacklightAdapter : RgbLightStateAdapter {
-    private val python = Python()
+class IteBacklightAdapter : RgbLightStateAdapter, PythonModule("ite8291r3_ctl") {
     private var _on = DEFAULT_STATE
     private var _brightness = DEFAULT_BRIGHTNESS
     private var _rgb = Triple(DEFAULT_RED, DEFAULT_GREEN, DEFAULT_BLUE)
@@ -20,14 +19,13 @@ class IteBacklightAdapter : RgbLightStateAdapter {
     }
 
     private fun applyState() {
-        python.iteRun(
-            "monocolor",
-            "--brightness",
-            if (_on) "$_brightness" else "0",
-            "--rgb",
-            "${_rgb.first},${_rgb.second},${_rgb.third}"
-        )
-
+        module {
+            exec(
+                "monocolor",
+                "--brightness", if (_on) "${_brightness.div(2)}" else "0",
+                "--rgb", "${_rgb.first},${_rgb.second},${_rgb.third}"
+            )
+        }
     }
 
     override var on: Boolean
